@@ -1,5 +1,3 @@
-Content-Type: image/svg+xml
-Cache-Control: public, max-age=20000
 
 <svg width="750" height="594" viewBox="0 0 750 594" xmlns="http://www.w3.org/2000/svg">
     <rect width="750" height="594" fill="#060d06"/>
@@ -44,6 +42,6 @@ Cache-Control: public, max-age=20000
 <text x="32" y="482" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#4d8f47">STARS </tspan><tspan fill="#2a4d26">········································ </tspan><tspan fill="#ffd166" font-weight="600">7</tspan></text>
 <text x="32" y="506" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#4d8f47">FOLLOWERS </tspan><tspan fill="#2a4d26">··································· </tspan><tspan fill="#b9ffb0" font-weight="600">49</tspan></text>
 <line x1="32" y1="546" x2="718" y2="546" stroke="#2a4d26" stroke-width="0.8"/>
-<text x="32" y="566" fill="#2a4d26" font-size="9" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" letter-spacing="0.5">generated 2026-05-17T10:13 UTC  //  bropal404.github.io</text>
+<text x="32" y="566" fill="#2a4d26" font-size="9" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" letter-spacing="0.5">generated 2026-05-17T10:28 UTC  //  bropal404.github.io</text>
 
     </svg>

@@ -31,6 +31,30 @@ Or centered:
 
 ---
 
+### Weather option
+
+The script now supports an optional `city` query parameter which fetches a small current-weather summary (temperature, short description and a glyph) from wttr.in and displays it on the card. The default city is `Hyderabad`.
+
+Examples:
+
+Embed with a city (London):
+
+```markdown
+![GitHub Stats](https://researchweb.iiit.ac.in/~gopal.kataria/cgi-bin/stats.py?user=YOUR_USERNAME&city=London)
+```
+
+Or centered HTML embed with a city (San Francisco):
+
+```html
+<div align="center">
+
+![GitHub Stats](https://researchweb.iiit.ac.in/~gopal.kataria/cgi-bin/stats.py?user=YOUR_USERNAME&city=San%20Francisco)
+
+</div>
+```
+
+---
+
 ### Option B — Self-host on `web.iiit.ac.in` / `researchweb.iiit.ac.in`
 
 #### 1. SSH into your server

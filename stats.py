@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 """
-GitHub Stats Card -- CGI Script (Dark Theme, v4)
-
-Deploy:
-    place in ~/public_html/cgi-bin/stats.py
-    chmod +x stats.py
-
+GitHub Stats Card -- CGI Script
+Theme: Phosphor CRT / Mission-Control terminal
+Deploy: place in ~/public_html/cgi-bin/stats.py
+chmod +x stats.py
 """
 
 import html
@@ -15,15 +13,44 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
+# ── CONFIGURATION ───────────────────────────────────────────────────────────
+DEFAULT_USER = "bropal404"
+CACHE_SECS = 20000
+
+# ── THEME CONSTANTS ─────────────────────────────────────────────────────────
+MONO = "ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"
+
+BG = "#060d06"             # near-black with green tint
+SCANLINE = "#0a150a"       # slightly lighter for scanline pattern
+PHOSPHOR = "#b9ffb0"       # bright phosphor green — primary text
+DIM = "#4d8f47"            # dimmed green
+VERY_DIM = "#2a4d26"       # very dim, for decorations
+ACCENT_CYAN = "#7fffea"    # cyan highlight (name, headers)
+ACCENT_AMB = "#ffd166"     # amber — used sparingly for warnings/weather
+ACCENT_RED = "#ff6b6b"     # red for "offline" type indicators
+BAR_FULL = "#39d353"       # filled bar block
+BAR_EMPTY = "#1a3318"      # empty bar block
+
+W = 750                    # Increased width for more breathing room
+PAD = 32
+BARW = W - PAD * 2
+
+LANG_COLORS = {
+    "Python": "#4fa3e0", "JavaScript": "#f7df1e", "TypeScript": "#3178c6",
+    "C++": "#f34b7d", "C": "#cccccc", "Java": "#ed8b00", "Go": "#00add8",
+    "Rust": "#f74c00", "HTML": "#e34c26", "CSS": "#663399", "Ruby": "#cc342d",
+    "Shell": "#39d353", "Kotlin": "#a97bff", "Swift": "#fa7343", "Dart": "#00b4ab",
+    "Jupyter Notebook": "#f37626", "Vue": "#41b883", "PHP": "#8892bf",
+    "Nix": "#7ebae4", "Makefile": "#427819", "TeX": "#3d6117",
+}
+
+# ── HELPER FUNCTIONS ────────────────────────────────────────────────────────
 
 def time_status():
     """Return a time-aware IIIT-Hyderabad flavoured status string."""
-
     now = datetime.now(timezone.utc).astimezone()
-
     h = now.hour
     wd = now.weekday()
-
     is_weekend = wd >= 5
 
     statuses = {
@@ -78,58 +105,16 @@ def time_status():
             22: "planning to sleep early (won't happen)",
             23: "realizing Monday is tomorrow :(",
         }
-
         return weekend_statuses.get(h, statuses.get(h, "existing"))
 
     return statuses.get(h, "existing")
 
-
-DEFAULT_USER = "bropal404"
-
-W = 600
-PAD = 36
-BARW = W - PAD * 2
-
-CACHE_SECS = 3600
-
-LANG_COLORS = {
-    "Python": "#3572A5",
-    "JavaScript": "#f1e05a",
-    "TypeScript": "#3178c6",
-    "C++": "#f34b7d",
-    "C": "#555555",
-    "Java": "#b07219",
-    "Go": "#00ADD8",
-    "Rust": "#dea584",
-    "HTML": "#e34c26",
-    "CSS": "#563d7c",
-    "Ruby": "#701516",
-    "Shell": "#89e051",
-    "Kotlin": "#A97BFF",
-    "Swift": "#F05138",
-    "Dart": "#00B4AB",
-    "Lua": "#000080",
-    "Haskell": "#5e5086",
-    "Scala": "#c22d40",
-    "R": "#198CE7",
-    "MATLAB": "#e16737",
-    "Jupyter Notebook": "#DA5B0B",
-    "Vue": "#41b883",
-    "PHP": "#4F5D95",
-    "Elixir": "#6e4a7e",
-    "Clojure": "#db5855",
-}
-
-
-
 def gh(path):
     token = os.environ.get("GITHUB_TOKEN", "")
-
     headers = {
-        "User-Agent": "readme-stats/3",
+        "User-Agent": "readme-stats/4",
         "Accept": "application/vnd.github+json",
     }
-
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
@@ -138,43 +123,127 @@ def gh(path):
             f"https://api.github.com{path}",
             headers=headers,
         )
-
         with urllib.request.urlopen(req, timeout=7) as response:
             return json.loads(response.read().decode())
+    except Exception as e :
+        print(e)
+        print("problem")
+        return None
 
+def get_weather(city="Hyderabad"):
+    """Fetch current weather from wttr.in (no API key needed)."""
+    try:
+        url = f"https://wttr.in/{urllib.parse.quote(city)}?format=j1"
+        req = urllib.request.Request(url, headers={"User-Agent": "readme-stats/4"})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            data = json.loads(r.read().decode())
+            cc = data["current_condition"][0]
+            temp = cc["temp_C"]
+            desc = cc["weatherDesc"][0]["value"]
+            feels = cc["FeelsLikeC"]
+            
+            # pick a simple weather glyph
+            dl = desc.lower()
+            if "thunder" in dl: glyph = "⚡"
+            elif "rain" in dl or "drizzle" in dl: glyph = "⛆"
+            elif "snow" in dl: glyph = "❄"
+            elif "fog" in dl or "mist" in dl: glyph = "≋"
+            elif "overcast" in dl or "cloud" in dl: glyph = "☁"
+            elif "sunny" in dl or "clear" in dl: glyph = "☀"
+            else: glyph = "~"
+            
+            return {
+                "temp": temp,
+                "feels": feels,
+                "desc": desc[:18],
+                "glyph": glyph,
+                "city": city,
+            }
     except Exception:
         return None
 
+def _fmt(n):
+    return f"{n/1000:.1f}k" if n >= 1000 else str(n)
 
-def time_ago(s):
+def _ago(s):
     try:
         dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
-
         diff = (datetime.now(timezone.utc) - dt).total_seconds()
-
-        if diff < 3600:
-            return f"{int(diff / 60)}m ago"
-
-        if diff < 86400:
-            return f"{int(diff / 3600)}h ago"
-
-        if diff < 604800:
-            return f"{int(diff / 86400)}d ago"
-
-        return f"{int(diff / 604800)}w ago"
-
+        if diff < 3600: return f"{int(diff/60)}m"
+        if diff < 86400: return f"{int(diff/3600)}h"
+        if diff < 604800: return f"{int(diff/86400)}d"
+        return f"{int(diff/604800)}w"
     except Exception:
-        return ""
+        return "?"
 
+def _signal_blocks(days_since_push):
+    """5-block signal strength based on recency."""
+    if days_since_push <= 1: filled = 5
+    elif days_since_push <= 3: filled = 4
+    elif days_since_push <= 7: filled = 3
+    elif days_since_push <= 14: filled = 2
+    elif days_since_push <= 30: filled = 1
+    else: filled = 0
+    return "▮" * filled + "▯" * (5 - filled), filled
 
-def fmt(n):
-    return f"{n / 1000:.1f}k" if n >= 1000 else str(n)
+def _account_uptime():
+    """Years/months/days since Jan 20, 2004."""
+    try:
+        dt = datetime(2004, 1, 20, tzinfo=timezone.utc)
+        diff = datetime.now(timezone.utc) - dt
+        days = diff.days
+        y, rem = divmod(days, 365)
+        m, d = divmod(rem, 30)
+        return f"{y}y {m}m {d}d"
+    except Exception:
+        return "unknown"
 
+def _ascii_bar(pct, width=24):
+    """Render an ASCII ▓░ progress bar."""
+    filled = round(pct / 100 * width)
+    return "▓" * filled + "░" * (width - filled)
 
+def _t(x, y, content, fill, size=12, weight="normal", anchor="start", spacing=None, mono=True):
+    fam = MONO if mono else "sans-serif"
+    sp = f' letter-spacing="{spacing}"' if spacing else ""
+    an = f' text-anchor="{anchor}"' if anchor != "start" else ""
+    return (
+        f'<text x="{x}" y="{y}" fill="{fill}" font-size="{size}" '
+        f'font-weight="{weight}" font-family="{fam}"{sp}{an}>{content}</text>\n'
+    )
+
+def _line(x1, y1, x2, y2, stroke=VERY_DIM, sw=0.8, dash=""):
+    d = f' stroke-dasharray="{dash}"' if dash else ""
+    return (
+        f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
+        f'stroke="{stroke}" stroke-width="{sw}"{d}/>\n'
+    )
+
+def _rect(x, y, w, h, fill="none", stroke="none", sw=1, rx=0):
+    return (
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" '
+        f'fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>\n'
+    )
+
+def _section(label, y):
+    """Draw a section header like ── [ ACTIVITY ] ────────────────"""
+    bracket = f"[ {label} ]"
+    blen = len(bracket) * 7.2 + 8  # approx pixel width
+    svg = _line(PAD, y, PAD + 12, y, stroke=DIM)
+    svg += _t(PAD + 16, y + 4, bracket, fill=DIM, size=12)
+    svg += _line(PAD + 24 + blen, y, W - PAD, y, stroke=DIM)
+    return svg, y + 24
+
+def error_svg(msg):
+    return f'''<svg width="{W}" height="100" viewBox="0 0 {W} 100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="{W}" height="100" fill="{BG}"/>
+        <text x="{PAD}" y="50" fill="{ACCENT_RED}" font-family="{MONO}" font-size="14">ERR: {html.escape(msg)}</text>
+    </svg>'''
+
+# ── DATA GATHERING ──────────────────────────────────────────────────────────
 
 def get_stats(username):
     user = gh(f"/users/{username}")
-
     if not user or "login" not in user:
         return None
 
@@ -182,53 +251,44 @@ def get_stats(username):
 
     stars = 0
     forks = 0
-
     langs = {}
-
     pushes = []
+    
+    top_repo = ""
+    top_stars = -1
 
     for repo in repos:
-        stars += repo.get("stargazers_count", 0)
+        s = repo.get("stargazers_count", 0)
+        stars += s
         forks += repo.get("forks_count", 0)
 
-        language = repo.get("language")
+        if s > top_stars:
+            top_stars = s
+            top_repo = html.escape(repo["name"][:40])
 
+        language = repo.get("language")
         if language:
             langs[language] = langs.get(language, 0) + 1
 
         if not repo.get("fork") and repo.get("pushed_at"):
-            pushes.append(
-                (
-                    html.escape(repo["name"][:32]),
-                    repo["pushed_at"],
-                )
-            )
+            pushes.append((
+                html.escape(repo["name"][:32]),
+                repo["pushed_at"],
+            ))
 
-    prs_raw = gh(
-        f"/search/issues?q=author:{username}+type:pr&sort=created&order=desc&per_page=3"
-    )
-
+    prs_raw = gh(f"/search/issues?q=author:{username}+type:pr&sort=created&order=desc&per_page=3")
     prs = []
 
     if prs_raw and "items" in prs_raw:
         for pr in prs_raw["items"]:
             title = html.escape(pr.get("title", "")[:38])
+            prs.append((
+                f"#{pr.get('number')} {title}",
+                pr.get("created_at", ""),
+            ))
 
-            prs.append(
-                (
-                    f"#{pr.get('number')} {title}",
-                    pr.get("created_at", ""),
-                )
-            )
-
-    top5 = sorted(
-        langs.items(),
-        key=lambda x: x[1],
-        reverse=True,
-    )[:5]
-
+    top5 = sorted(langs.items(), key=lambda x: x[1], reverse=True)[:5]
     total = sum(count for _, count in top5) or 1
-
     top5_pct = [(lang, count, round(count / total * 100)) for lang, count in top5]
 
     return {
@@ -243,271 +303,213 @@ def get_stats(username):
         "pushes": pushes[:2],
         "prs": prs[:1],
         "status": time_status(),
+        "top_repo": top_repo,
+        "uptime": _account_uptime(),
     }
 
+# ── RENDERING ENGINE ────────────────────────────────────────────────────────
 
+def render(stats, weather=None):
+    svg = []
 
-def render(stats):
-    BG = "#0d1117"
-    BORDER = "#30363d"
-
-    TEXT_PRIMARY = "#c9d1d9"
-    TEXT_SECONDARY = "#8b949e"
-    TEXT_MUTED = "#6e7681"
-    ACCENT = "#58a6ff"
-
-    DIVIDER = "#21262d"
-    BAR_BG = "#161b22"
-
-
-    name_y = 44
-    user_y = name_y + 18
-
-    bio_line = ""
-    status_y = user_y + 22
-
-    if stats["bio"]:
-        bio_line = f"""
-        <text
-            x="{PAD}"
-            y="{user_y + 18}"
-            fill="{TEXT_SECONDARY}"
-            font-size="12.5"
-            font-family="Segoe UI, sans-serif"
-        >
-            {stats["bio"]}
-        </text>
-        """
-        status_y = user_y + 38
-
-    status_line = f"""
-    <text
-        x="{PAD}"
-        y="{status_y}"
-        fill="{TEXT_MUTED}"
-        font-size="11"
-        font-family="Segoe UI, sans-serif"
-    >
-        <tspan fill="#f0883e" font-size="12">&#9679;</tspan>  {html.escape(stats["status"])}
-    </text>
+    # ── scanline pattern ──────────────────────────────────────────────────
+    defs = f"""
+    <defs>
+      <pattern id="scan" x="0" y="0" width="{W}" height="3" patternUnits="userSpaceOnUse">
+        <rect x="0" y="0" width="{W}" height="1" fill="{SCANLINE}" opacity="0.55"/>
+      </pattern>
+      <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
     """
 
-    div1_y = status_y + 20
+    # ── derive extra stats ────────────────────────────────────────────────
+    days_since = 999
+    if stats["pushes"]:
+        try:
+            last_ts = stats["pushes"][0][1]
+            dt = datetime.fromisoformat(last_ts.replace("Z", "+00:00"))
+            days_since = (datetime.now(timezone.utc) - dt).total_seconds() / 86400
+        except Exception:
+            pass
 
+    signal_str, signal_lvl = _signal_blocks(days_since)
+    signal_color = [ACCENT_RED, ACCENT_AMB, ACCENT_AMB, BAR_FULL, PHOSPHOR, PHOSPHOR][signal_lvl]
+    
+    uptime = stats.get("uptime", "")
+    top_repo = stats.get("top_repo", "")
 
-    lang_header_y = div1_y + 20
-    bar_y = lang_header_y + 14
-    bar_h = 11
+    # ── TOP BAR (name + weather) ──────────────────────────────────────────
+    cur_y = 48  # Increased initial Y padding
 
-    bar_rects = ""
-    bx = PAD
+    # boot line
+    svg.append(_t(PAD, cur_y - 16, "BROPAL-STATS-CARD v4.0 :: INITIALISED", VERY_DIM, size=9, spacing=0.8))
+
+    # name — big, cyan, glowing
+    svg.append(
+        f'<text x="{PAD}" y="{cur_y + 10}" fill="{ACCENT_CYAN}" font-size="30" '
+        f'font-weight="700" font-family="{MONO}" filter="url(#glow)" letter-spacing="2">'
+        f'{stats["name"]}</text>\n'
+    )
+
+    # @handle right-aligned
+    svg.append(_t(W - PAD, cur_y + 10, f"@{stats['username']}", DIM, size=11, anchor="end"))
+
+    cur_y += 32  # Spaced out from name
+
+    # status row
+    svg.append(
+        f'<text x="{PAD}" y="{cur_y}" fill="{DIM}" font-size="11" font-family="{MONO}">'
+        f'<tspan fill="{ACCENT_AMB}">❯</tspan>  {html.escape(stats["status"])}'
+        f'</text>\n'
+    )
+
+    # weather — top right, same row
+    if weather:
+        wx_str = f'{weather["glyph"]} {weather["temp"]}°C  {weather["desc"]}'
+        svg.append(
+            f'<text x="{W - PAD}" y="{cur_y}" fill="{ACCENT_AMB}" font-size="11" '
+            f'font-family="{MONO}" text-anchor="end">{html.escape(wx_str)}</text>\n'
+        )
+
+    cur_y += 28  # Spaced out
+
+    # signal + uptime row
+    svg.append(
+        f'<text x="{PAD}" y="{cur_y}" fill="{signal_color}" font-size="11" font-family="{MONO}">'
+        f'SIG {signal_str}</text>\n'
+    )
+    if uptime:
+        svg.append(_t(W - PAD, cur_y, f"UPTIME {uptime}", VERY_DIM, size=10, anchor="end"))
+
+    cur_y += 32  # Spaced out
+
+    # ── SECTION: LANGUAGES ────────────────────────────────────────────────
+    hdr, cur_y = _section("LANGUAGE USAGE IN REPOS", cur_y)
+    svg.append(hdr)
 
     for lang, _, pct in stats["top_langs"]:
-        width = BARW * pct / 100
-        color = LANG_COLORS.get(lang, "#8b949e")
-        bar_rects += f"""
-        <rect
-            x="{bx:.2f}"
-            y="{bar_y}"
-            width="{width:.2f}"
-            height="{bar_h}"
-            fill="{color}"
-        />
-        """
-        bx += width
+        color = LANG_COLORS.get(lang, DIM)
+        bar = _ascii_bar(pct, width=24) # wider bar
+        name_col = f"{lang:<14}"
+        pct_col = f"{pct:>3}%"
 
-    col_width = BARW // 3
-    leg_y0 = bar_y + bar_h + 22
-    leg_svg = ""
+        svg.append(
+            f'<text x="{PAD}" y="{cur_y}" font-size="12" font-family="{MONO}">'
+            f'<tspan fill="{PHOSPHOR}">{name_col}</tspan>'
+            f'<tspan fill="{color}"> {bar} </tspan>'
+            f'<tspan fill="{DIM}">{pct_col}</tspan>'
+            f'</text>\n'
+        )
+        cur_y += 24 # Spaced out rows
 
-    for i, (lang, _, pct) in enumerate(stats["top_langs"]):
-        col = i % 3
-        row = i // 3
-        lx = PAD + col * col_width
-        ly = leg_y0 + row * 20
-        color = LANG_COLORS.get(lang, "#8b949e")
-        leg_svg += f"""
-        <circle cx="{lx + 5}" cy="{ly - 5}" r="5" fill="{color}"/>
-        <text
-            x="{lx + 16}"
-            y="{ly}"
-            fill="{TEXT_PRIMARY}"
-            font-size="11.5"
-            font-family="Segoe UI, sans-serif"
-        >
-            {lang}<tspan fill="{TEXT_MUTED}" font-size="10.5"> {pct}%</tspan>
-        </text>
-        """
+    cur_y += 12
 
-    rows = (len(stats["top_langs"]) + 2) // 3
-    div2_y = leg_y0 + rows * 20 + 14
-
+    # ── SECTION: ACTIVITY ─────────────────────────────────────────────────
+    hdr, cur_y = _section("RECENT ACTIVITY", cur_y)
+    svg.append(hdr)
 
     events = []
     events.extend([("push", name, ts) for name, ts in stats["pushes"]])
     events.extend([("pr", label, ts) for label, ts in stats["prs"]])
 
-    act_header_y = div2_y + 20
-    act_y = act_header_y + 20
-
-    act_svg = f"""
-    <text
-        x="{PAD}"
-        y="{act_header_y}"
-        fill="{TEXT_MUTED}"
-        font-size="10"
-        letter-spacing="0.7"
-        font-family="Segoe UI, sans-serif"
-    >
-        RECENT ACTIVITY
-    </text>
-    """
-
     for kind, label, ts in events[:3]:
         is_push = kind == "push"
-        color = "#58a6ff" if is_push else "#a371f7"
-        icon = "&#8593;" if is_push else "&#10548;"
-        verb = "pushed to" if is_push else "opened PR"
-        ago = time_ago(ts)
-        act_svg += f"""
-        <text x="{PAD}" y="{act_y}" fill="{color}" font-size="13" font-family="monospace">{icon}</text>
-        <text x="{PAD + 18}" y="{act_y}" fill="{TEXT_SECONDARY}" font-size="12" font-family="Segoe UI, sans-serif">
-            {verb}<tspan fill="{TEXT_PRIMARY}" font-weight="600"> {label}</tspan><tspan fill="{TEXT_MUTED}" font-size="11">  {ago}</tspan>
-        </text>
-        """
-        act_y += 21
+        badge = "PUSH" if is_push else "PR  "
+        color = PHOSPHOR if is_push else ACCENT_CYAN
+        ago = _ago(ts)
+        
+        svg.append(
+            f'<text x="{PAD}" y="{cur_y}" font-size="11.5" font-family="{MONO}">'
+            f'<tspan fill="{VERY_DIM}">[</tspan>'
+            f'<tspan fill="{color}">{badge}</tspan>'
+            f'<tspan fill="{VERY_DIM}">]</tspan>'
+            f'<tspan fill="{PHOSPHOR}"> {html.escape(label[:36])}</tspan>'
+            f'<tspan fill="{DIM}">  +{ago}</tspan>'
+            f'</text>\n'
+        )
+        cur_y += 24 # Spaced out rows
 
+    if top_repo:
+        cur_y += 6
+        svg.append(
+            f'<text x="{PAD}" y="{cur_y}" font-size="11" font-family="{MONO}">'
+            f'<tspan fill="{VERY_DIM}">★ TOP REPO </tspan>'
+            f'<tspan fill="{ACCENT_AMB}" font-weight="600">{html.escape(top_repo[:40])}</tspan>'
+            f'</text>\n'
+        )
+        cur_y += 24 # Spaced out rows
 
-    div3_y = act_y + 12
+    cur_y += 12
 
-    slots = [
-        ("REPOS", fmt(stats["repos"]), "#58a6ff", 0),
-        ("STARS", fmt(stats["stars"]), "#e3b341", 1),
-        ("FORKS", fmt(stats["forks"]), "#3fb950", 2),
-        ("FOLLOWERS", fmt(stats["followers"]), "#a371f7", 3),
+    # ── SECTION: STATS ────────────────────────────────────────────────────
+    hdr, cur_y = _section("LIFE STATS", cur_y)
+    svg.append(hdr)
+
+    def _stat_row(key, val, val_color=PHOSPHOR):
+        total = 48 # Increased to spread dots more widely across wider screen
+        dots = "·" * max(2, total - len(key) - len(str(val)) - 2)
+        return (
+            f'<text x="{PAD}" y="{cur_y}" font-size="12" font-family="{MONO}">'
+            f'<tspan fill="{DIM}">{key} </tspan>'
+            f'<tspan fill="{VERY_DIM}">{dots} </tspan>'
+            f'<tspan fill="{val_color}" font-weight="600">{val}</tspan>'
+            f'</text>\n'
+        )
+
+    rows_data = [
+        ("REPOS", _fmt(stats["repos"]), ACCENT_CYAN),
+        ("STARS", _fmt(stats["stars"]), ACCENT_AMB),
+        ("FOLLOWERS", _fmt(stats["followers"]), PHOSPHOR),
     ]
+    
+    for key, val, col in rows_data:
+        svg.append(_stat_row(key, val, col))
+        cur_y += 24 # Spaced out rows
 
-    slot_w = (W - PAD * 2) / 4
-    slabel_y = div3_y + 24
-    sval_y = div3_y + 50
+    cur_y += 16
 
-    stats_svg = ""
-    for label, val, color, idx in slots:
-        sx = PAD + idx * slot_w
-        stats_svg += f"""
-        <text
-            x="{sx:.1f}"
-            y="{slabel_y}"
-            fill="{TEXT_MUTED}"
-            font-size="10"
-            letter-spacing="0.7"
-            font-family="Segoe UI, sans-serif"
-        >{label}</text>
-        <text
-            x="{sx:.1f}"
-            y="{sval_y}"
-            fill="{color}"
-            font-size="27"
-            font-weight="700"
-            font-family="Courier New, monospace"
-        >{val}</text>
-        """
+    # ── FOOTER ────────────────────────────────────────────────────────────
+    svg.append(_line(PAD, cur_y, W - PAD, cur_y, stroke=VERY_DIM))
+    cur_y += 20
+    now_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
+    svg.append(
+        f'<text x="{PAD}" y="{cur_y}" fill="{VERY_DIM}" font-size="9" font-family="{MONO}" letter-spacing="0.5">'
+        f'generated {now_str}  //  bropal404.github.io'
+        f'</text>\n'
+    )
 
-    H = sval_y + PAD
+    H = cur_y + 28
 
+    # ── ASSEMBLE ──────────────────────────────────────────────────────────
+    body = "".join(svg)
+    return f"""<svg width="{W}" height="{H}" viewBox="0 0 {W} {H}" xmlns="http://www.w3.org/2000/svg">
+    <rect width="{W}" height="{H}" fill="{BG}"/>
+    {defs}
+    <rect width="{W}" height="{H}" fill="url(#scan)"/>
+    {body}
+    </svg>"""
 
-    return f"""<svg
-    width="{W}"
-    height="{H}"
-    viewBox="0 0 {W} {H}"
-    xmlns="http://www.w3.org/2000/svg"
->
-    <defs>
-        <clipPath id="bc">
-            <rect x="{PAD}" y="{bar_y}" width="{BARW}" height="{bar_h}" rx="4"/>
-        </clipPath>
-    </defs>
-
-    <!-- Card background -->
-    <rect width="{W}" height="{H}" rx="12" fill="{BG}" stroke="{BORDER}" stroke-width="1"/>
-
-    <!-- Name -->
-    <text x="{PAD}" y="{name_y}" fill="{TEXT_PRIMARY}" font-size="21" font-weight="700" font-family="Segoe UI, sans-serif">
-        {stats["name"]}
-    </text>
-
-    <!-- @username -->
-    <text x="{PAD}" y="{user_y}" fill="{ACCENT}" font-size="12" font-family="Courier New, monospace">
-        @{stats["username"]}
-    </text>
-
-    {bio_line}
-
-    {status_line}
-
-    <!-- Divider 1 -->
-    <line x1="{PAD}" y1="{div1_y}" x2="{W - PAD}" y2="{div1_y}" stroke="{DIVIDER}" stroke-width="1"/>
-
-    <!-- Languages header -->
-    <text x="{PAD}" y="{lang_header_y}" fill="{TEXT_MUTED}" font-size="10" letter-spacing="0.7" font-family="Segoe UI, sans-serif">
-        TOP LANGUAGES
-    </text>
-
-    <!-- Language bar background -->
-    <rect x="{PAD}" y="{bar_y}" width="{BARW}" height="{bar_h}" rx="4" fill="{BAR_BG}"/>
-
-    <!-- Language bar fill -->
-    <g clip-path="url(#bc)">{bar_rects}</g>
-
-    <!-- Language bar border -->
-    <rect x="{PAD}" y="{bar_y}" width="{BARW}" height="{bar_h}" rx="4" fill="none" stroke="{BORDER}" stroke-width="0.6"/>
-
-    {leg_svg}
-
-    <!-- Divider 2 -->
-    <line x1="{PAD}" y1="{div2_y}" x2="{W - PAD}" y2="{div2_y}" stroke="{DIVIDER}" stroke-width="1"/>
-
-    {act_svg}
-
-    <!-- Divider 3 -->
-    <line x1="{PAD}" y1="{div3_y}" x2="{W - PAD}" y2="{div3_y}" stroke="{DIVIDER}" stroke-width="1"/>
-
-    {stats_svg}
-</svg>"""
-
-
-
-def error_svg(msg):
-    return f"""
-    <svg width="420" height="56" xmlns="http://www.w3.org/2000/svg">
-        <rect width="420" height="56" rx="8" fill="#0d1117" stroke="#f85149" stroke-width="1"/>
-        <text x="16" y="33" fill="#f85149" font-size="13" font-family="Segoe UI, sans-serif">
-            {html.escape(msg)}
-        </text>
-    </svg>
-    """
-
-
+# ── MAIN CGI EXECUTABLE ─────────────────────────────────────────────────────
 
 def main():
     params = urllib.parse.parse_qs(os.environ.get("QUERY_STRING", ""))
-
-    user = params.get("user", [DEFAULT_USER])[0].strip()
-
-    if not user:
-        user = DEFAULT_USER
+    user = params.get("user", [DEFAULT_USER])[0].strip() or DEFAULT_USER
+    city = params.get("city", ["Hyderabad"])[0].strip()
 
     print("Content-Type: image/svg+xml")
     print(f"Cache-Control: public, max-age={CACHE_SECS}")
     print()
 
     stats = get_stats(user)
+    weather = get_weather(city)
 
     if stats:
-        print(render(stats))
+        print(render(stats, weather=weather))
     else:
         print(error_svg(f"Could not fetch GitHub stats for: {user}"))
-
 
 if __name__ == "__main__":
     main()

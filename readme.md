@@ -4,7 +4,7 @@ A lightweight CGI script that generates a dynamic GitHub stats card as an SVG â€
 
 <div align="center">
 
-![Stats](https://researchweb.iiit.ac.in/~gopal.kataria/cgi-bin/stats.py)
+![Stats](/demo.svg)
 
 </div>
 

@@ -1,0 +1,49 @@
+Content-Type: image/svg+xml
+Cache-Control: public, max-age=20000
+
+<svg width="750" height="594" viewBox="0 0 750 594" xmlns="http://www.w3.org/2000/svg">
+    <rect width="750" height="594" fill="#060d06"/>
+    
+    <defs>
+      <pattern id="scan" x="0" y="0" width="750" height="3" patternUnits="userSpaceOnUse">
+        <rect x="0" y="0" width="750" height="1" fill="#0a150a" opacity="0.55"/>
+      </pattern>
+      <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+    
+    <rect width="750" height="594" fill="url(#scan)"/>
+    <text x="32" y="32" fill="#2a4d26" font-size="9" font-weight="normal" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" letter-spacing="0.8">BROPAL-STATS-CARD v4.0 :: INITIALISED</text>
+<text x="32" y="58" fill="#7fffea" font-size="30" font-weight="700" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" filter="url(#glow)" letter-spacing="2">bropal</text>
+<text x="718" y="58" fill="#4d8f47" font-size="11" font-weight="normal" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" text-anchor="end">@bropal404</text>
+<text x="32" y="80" fill="#4d8f47" font-size="11" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#ffd166">❯</tspan>  weekend 20 Hour nap session</text>
+<text x="718" y="80" fill="#ffd166" font-size="11" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" text-anchor="end">☁ 37°C  Partly cloudy</text>
+<text x="32" y="108" fill="#b9ffb0" font-size="11" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace">SIG ▮▮▮▮▮</text>
+<text x="718" y="108" fill="#2a4d26" font-size="10" font-weight="normal" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" text-anchor="end">UPTIME 22y 4m 3d</text>
+<line x1="32" y1="140" x2="44" y2="140" stroke="#4d8f47" stroke-width="0.8"/>
+<text x="48" y="144" fill="#4d8f47" font-size="12" font-weight="normal" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace">[ LANGUAGE USAGE IN REPOS ]</text>
+<line x1="258.4" y1="140" x2="718" y2="140" stroke="#4d8f47" stroke-width="0.8"/>
+<text x="32" y="164" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#b9ffb0">Python        </tspan><tspan fill="#4fa3e0"> ▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░ </tspan><tspan fill="#4d8f47"> 43%</tspan></text>
+<text x="32" y="188" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#b9ffb0">HTML          </tspan><tspan fill="#e34c26"> ▓▓▓▓░░░░░░░░░░░░░░░░░░░░ </tspan><tspan fill="#4d8f47"> 17%</tspan></text>
+<text x="32" y="212" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#b9ffb0">C             </tspan><tspan fill="#cccccc"> ▓▓▓░░░░░░░░░░░░░░░░░░░░░ </tspan><tspan fill="#4d8f47"> 13%</tspan></text>
+<text x="32" y="236" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#b9ffb0">Shell         </tspan><tspan fill="#39d353"> ▓▓▓░░░░░░░░░░░░░░░░░░░░░ </tspan><tspan fill="#4d8f47"> 13%</tspan></text>
+<text x="32" y="260" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#b9ffb0">JavaScript    </tspan><tspan fill="#f7df1e"> ▓▓▓░░░░░░░░░░░░░░░░░░░░░ </tspan><tspan fill="#4d8f47"> 13%</tspan></text>
+<line x1="32" y1="296" x2="44" y2="296" stroke="#4d8f47" stroke-width="0.8"/>
+<text x="48" y="300" fill="#4d8f47" font-size="12" font-weight="normal" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace">[ RECENT ACTIVITY ]</text>
+<line x1="200.8" y1="296" x2="718" y2="296" stroke="#4d8f47" stroke-width="0.8"/>
+<text x="32" y="320" font-size="11.5" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#2a4d26">[</tspan><tspan fill="#b9ffb0">PUSH</tspan><tspan fill="#2a4d26">]</tspan><tspan fill="#b9ffb0"> agentic-ai-distributed-platform</tspan><tspan fill="#4d8f47">  +16h</tspan></text>
+<text x="32" y="344" font-size="11.5" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#2a4d26">[</tspan><tspan fill="#b9ffb0">PUSH</tspan><tspan fill="#2a4d26">]</tspan><tspan fill="#b9ffb0"> bropal404</tspan><tspan fill="#4d8f47">  +6d</tspan></text>
+<text x="32" y="368" font-size="11.5" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#2a4d26">[</tspan><tspan fill="#7fffea">PR  </tspan><tspan fill="#2a4d26">]</tspan><tspan fill="#b9ffb0"> #1 FINAL SUBMISSION</tspan><tspan fill="#4d8f47">  +5w</tspan></text>
+<text x="32" y="398" font-size="11" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#2a4d26">★ TOP REPO </tspan><tspan fill="#ffd166" font-weight="600">bropal404</tspan></text>
+<line x1="32" y1="434" x2="44" y2="434" stroke="#4d8f47" stroke-width="0.8"/>
+<text x="48" y="438" fill="#4d8f47" font-size="12" font-weight="normal" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace">[ LIFE STATS ]</text>
+<line x1="164.8" y1="434" x2="718" y2="434" stroke="#4d8f47" stroke-width="0.8"/>
+<text x="32" y="458" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#4d8f47">REPOS </tspan><tspan fill="#2a4d26">······································· </tspan><tspan fill="#7fffea" font-weight="600">56</tspan></text>
+<text x="32" y="482" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#4d8f47">STARS </tspan><tspan fill="#2a4d26">········································ </tspan><tspan fill="#ffd166" font-weight="600">7</tspan></text>
+<text x="32" y="506" font-size="12" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace"><tspan fill="#4d8f47">FOLLOWERS </tspan><tspan fill="#2a4d26">··································· </tspan><tspan fill="#b9ffb0" font-weight="600">49</tspan></text>
+<line x1="32" y1="546" x2="718" y2="546" stroke="#2a4d26" stroke-width="0.8"/>
+<text x="32" y="566" fill="#2a4d26" font-size="9" font-family="ui-monospace, 'Cascadia Code', 'Fira Mono', 'Courier New', monospace" letter-spacing="0.5">generated 2026-05-17T10:13 UTC  //  bropal404.github.io</text>
+
+    </svg>

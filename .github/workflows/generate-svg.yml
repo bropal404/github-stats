@@ -24,6 +24,8 @@ jobs:
       - name: Generate SVG
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Customize username and city below
+          QUERY_STRING: "user=YOUR_USERNAME&city=Hyderabad"
         run: |
           # Strip the CGI headers and save the SVG content
           python stats.py | awk '/<svg/{p=1} p' > demo.svg
